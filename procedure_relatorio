@@ -1,0 +1,35 @@
+CREATE OR REPLACE PROCEDURE relatorio_pedidos
+IS
+BEGIN
+    FOR r IN (
+        SELECT
+            u.id_usuario,
+            u.email_usuario,
+            COUNT(p.id_pedido) AS total_pedidos,
+            SUM(p.preco_pedido) AS total_precos,
+            MAX(COUNT(p.id_pedido)) OVER () AS max_pedidos_usuario
+        FROM
+            tb_usuario u
+            INNER JOIN tb_pedido p ON u.id_usuario = p.id_usuario
+        GROUP BY
+            u.id_usuario, u.email_usuario
+        ORDER BY
+            total_pedidos DESC
+    ) LOOP
+        DBMS_OUTPUT.PUT_LINE('Usuário: ' || r.email_usuario);
+        DBMS_OUTPUT.PUT_LINE('Total de Pedidos: ' || r.total_pedidos);
+        DBMS_OUTPUT.PUT_LINE('Soma dos Preços: ' || r.total_precos);
+        DBMS_OUTPUT.PUT_LINE('---');
+
+
+        IF r.total_pedidos = r.max_pedidos_usuario THEN
+            DBMS_OUTPUT.PUT_LINE('Usuário com Maior Número de Pedidos!');
+            DBMS_OUTPUT.PUT_LINE('---');
+        END IF;
+    END LOOP;
+END;
+
+
+
+
+
