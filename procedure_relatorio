@@ -1,35 +1,43 @@
-CREATE OR REPLACE PROCEDURE relatorio_pedidos
-IS
+CREATE OR REPLACE PROCEDURE relatorio_pedido(
+    p_id_usuario IN NUMBER
+) AS
+    v_total_pedidos NUMBER;
 BEGIN
-    FOR r IN (
+    -- Calcula o total de pedidos para o usuário fornecido
+    SELECT COUNT(*) INTO v_total_pedidos
+    FROM tb_pedido
+    WHERE id_usuario = p_id_usuario;
+
+    -- Imprime o cabeçalho do relatório
+    DBMS_OUTPUT.PUT_LINE('Relatório de Pedidos para o Usuário ' || p_id_usuario);
+    DBMS_OUTPUT.PUT_LINE('----------------------------------------');
+
+    -- Imprime detalhes dos pedidos
+    FOR pedidos IN (
         SELECT
-            u.id_usuario,
-            u.email_usuario,
-            COUNT(p.id_pedido) AS total_pedidos,
-            SUM(p.preco_pedido) AS total_precos,
-            MAX(COUNT(p.id_pedido)) OVER () AS max_pedidos_usuario
+            p.id_pedido,
+            p.nome_pedido,
+            p.desc_pedido,
+            p.data_pedido,
+            p.preco_pedido
         FROM
-            tb_usuario u
-            INNER JOIN tb_pedido p ON u.id_usuario = p.id_usuario
-        GROUP BY
-            u.id_usuario, u.email_usuario
+            tb_pedido p
+            INNER JOIN tb_usuario u ON p.id_usuario = u.id_usuario
+        WHERE
+            u.id_usuario = p_id_usuario
         ORDER BY
-            total_pedidos DESC
-    ) LOOP
-        DBMS_OUTPUT.PUT_LINE('Usuário: ' || r.email_usuario);
-        DBMS_OUTPUT.PUT_LINE('Total de Pedidos: ' || r.total_pedidos);
-        DBMS_OUTPUT.PUT_LINE('Soma dos Preços: ' || r.total_precos);
-        DBMS_OUTPUT.PUT_LINE('---');
-
-
-        IF r.total_pedidos = r.max_pedidos_usuario THEN
-            DBMS_OUTPUT.PUT_LINE('Usuário com Maior Número de Pedidos!');
-            DBMS_OUTPUT.PUT_LINE('---');
-        END IF;
+            p.data_pedido DESC
+    ) 
+    LOOP
+        DBMS_OUTPUT.PUT_LINE('Pedido ID: ' || pedidos.id_pedido);
+        DBMS_OUTPUT.PUT_LINE('Nome: ' || pedidos.nome_pedido);
+        DBMS_OUTPUT.PUT_LINE('Descrição: ' || pedidos.desc_pedido);
+        DBMS_OUTPUT.PUT_LINE('Data do Pedido: ' || TO_CHAR(pedidos.data_pedido, 'DD-MON-YYYY'));
+        DBMS_OUTPUT.PUT_LINE('Preço: ' || pedidos.preco_pedido);
+        DBMS_OUTPUT.PUT_LINE('----------------------------------------');
     END LOOP;
-END;
 
-
-
-
-
+    -- Imprime o total de pedidos
+    DBMS_OUTPUT.PUT_LINE('Total de Pedidos: ' || v_total_pedidos);
+END relatorio_pedido;
+/
