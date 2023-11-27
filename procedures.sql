@@ -528,17 +528,24 @@ CREATE OR REPLACE PROCEDURE atualizar_endereco_fornecedor(
     p_cep_fornecedor IN VARCHAR2
 ) AS
 BEGIN
-    UPDATE tb_endereco_fornecedor
-    SET id_bairro = p_id_bairro,
-        id_fornecedor = p_id_fornecedor,
-        logradouro_fornecedor = p_logradouro_fornecedor,
-        numero_fornecedor = p_numero_fornecedor,
-        cep_fornecedor = p_cep_fornecedor
-    WHERE id_end_fornecedor = p_id_end_fornecedor;
+    EXECUTE IMMEDIATE 
+        'UPDATE tb_endereco_fornecedor
+         SET id_bairro = :id_bairro,
+             id_fornecedor = :id_fornecedor,
+             logradouro_fornecedor = :logradouro_fornecedor,
+             numero_fornecedor = :numero_fornecedor,
+             cep_fornecedor = :cep_fornecedor
+         WHERE id_end_fornecedor = :id_end_fornecedor'
+    USING 
+        p_id_bairro,
+        p_id_fornecedor,
+        p_logradouro_fornecedor,
+        p_numero_fornecedor,
+        p_cep_fornecedor,
+        p_id_end_fornecedor;
+
     COMMIT;
 END atualizar_endereco_fornecedor;
-
-ALTER PROCEDURE atualizar_endereco_fornecedor COMPILE;
 
 
 CREATE OR REPLACE PROCEDURE excluir_endereco_fornecedor(
